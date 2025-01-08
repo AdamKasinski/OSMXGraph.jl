@@ -6,6 +6,8 @@ The 'OSMXGraph' module was created under contract no. 7474/2024. The tools enabl
 3. Metadata for the graph's nodes (detailed in the "Dataframe for Graph Metadata" section),s
 4. Metadata for POIs, including the point's location, class and type of POI, and the ID of the nearest road nodes (detailed in the "Dataframe for POI" section).
 
+[![DOI](https://zenodo.org/badge/901562113.svg)](https://doi.org/10.5281/zenodo.14618331)
+
 ## Road Network Graph
 
 The road network graph is stored as a sparse adjacency matrix, where each pair of node IDs is mapped to a corresponding road ID. The node and way IDs can then be mapped to a dataframe containing metadata about the nodes and roads.
