@@ -3,7 +3,7 @@
 The 'OSMXGraph' module was created under contract no. 7474/2024. The tools enable the transformation of OSM data into a set of data frames containing:
 1. A graph of the road network (detailed in the "Road Network Graph" section),
 2. Metadata for the graph's edges (detailed in the "Dataframe for Graph Metadata" section),
-3. Metadata for the graph's nodes (detailed in the "Dataframe for Graph Metadata" section),s
+3. Metadata for the graph's nodes (detailed in the "Dataframe for Graph Metadata" section),
 4. Metadata for POIs, including the point's location, class and type of POI, and the ID of the nearest road nodes (detailed in the "Dataframe for POI" section).
 
 [![DOI](https://zenodo.org/badge/901562113.svg)](https://doi.org/10.5281/zenodo.14618331)
