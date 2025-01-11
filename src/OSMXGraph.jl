@@ -176,6 +176,24 @@ function edges_to_df(edges::Vector{Edge})
     return df
 end
 
+function create_node_metadata(edges::Vector{Edge})
+    df = DataFrame(
+        id = [i for i in 1:length(edges)],
+        from_id = [edge.from_id for edge in edges],
+        to_id = [edge.to_id for edge in edges],
+        from_LLA = [edge.from_LLA for edge in edges],
+        to_LLA = [edge.to_LLA for edge in edges],
+    )
+end
+
+function create_edge_metadata(edges::Vector{Edge})
+    df = DataFrame(
+        id = [i for i in 1:length(edges)],
+        way = [edge.way for edge in edges],
+        type = [edge.type for edge in edges]
+    )
+end
+
 """
     create_sparse_index(from::Vector{Int}, to::Vector{Int}, ids::Vector{Int}) -> SparseMatrixCSC
 
