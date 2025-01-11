@@ -37,7 +37,6 @@ Filters a list of OpenStreetMapX 'Way' objects to include only those whose "high
 # Returns
 A vector of 'Way' objects that match the specified highway types.
 """
-
 function filter_ways(ways::Vector{Way},road_types::Vector{String})
     filtered_ways = Vector{OpenStreetMapX.Way}()
     for way in ways
@@ -46,6 +45,39 @@ function filter_ways(ways::Vector{Way},road_types::Vector{String})
         end
     end
     return filtered_ways
+end
+
+"""
+    find_all_points(highways::Vector{Way}, parsed_map::OpenStreetMapX.OSMData)
+
+Processes a collection of highways and maps all their nodes to geographical and internal identifiers.
+
+# Arguments
+- 'highways::Vector{Way}': A vector of 'Way' objects, where each 'Way' contains an 'id', a list of 'nodes', and associated tags.
+- 'parsed_map::OpenStreetMapX.OSMData': An object containing parsed OpenStreetMap data, including node information.
+
+# Returns
+A tuple containing:
+1. 'roads::Dict{Int, Vector{Int}}': A dictionary mapping highway IDs to their respective node sequences.
+2. 'roads_tags::Dict{Int, Dict{String, String}}': A dictionary mapping highway IDs to their associated tags.
+3. 'nds::Dict{Int, Tuple{LLA, Int}}': A dictionary mapping node IDs to a tuple of geographical coordinates ('LLA') and a unique internal node identifier.
+"""
+function find_all_points(highways::Vector{Way},parsed_map::OpenStreetMapX.OSMData)
+    roads = Dict{Int,Vector{Int}}()
+    nds = Dict{Int,Tuple{LLA,Int}}()
+    node_id = 1
+    roads_tags = Dict{Int,Dict{String,String}}()
+    for highway in highways
+        roads[highway.id] = highway.nodes
+        roads_tags[highway.id] = highway.tags
+        for i = 1:length(highway.nodes)
+            if !haskey(nds,highway.nodes[i])
+                nds[highway.nodes[i]] = (parsed_map.nodes[highway.nodes[i]],node_id)
+                node_id+=1
+            end
+        end
+    end
+    return roads, roads_tags, nds
 end
 
 """
@@ -64,7 +96,6 @@ A tuple containing:
 - 'roads_tags': A dictionary of road tags for each highway.
 - 'nds': A dictionary mapping node IDs to location data and index.
 """
-
 function find_intersections(highways::Vector{Way},parsed_map::OpenStreetMapX.OSMData)
     seen = Set{Int}()
     intersections = Set{Int}()
@@ -292,17 +323,17 @@ Loads road graph data from CSV and JSON files and constructs the graph and spati
 
 # Arguments
 
-- `road_file`: The filename of the CSV file containing road edge data.
-- `node_file`: The filename of the JSON file containing node data.
-- `dir`: The directory where the files are located. Defaults to the current directory `"."`.
+- 'road_file': The filename of the CSV file containing road edge data.
+- 'node_file': The filename of the JSON file containing node data.
+- 'dir': The directory where the files are located. Defaults to the current directory '"."'.
 
 # Returns
 
 A tuple containing:
-- `df`: A `DataFrame` of edges loaded from `road_file`.
-- `sparse_index`: A `SparseMatrixCSC` representing the adjacency matrix of the graph.
-- `road_index`: A `KDTree` for spatial indexing of road nodes.
-- `node_indices`: A vector of node indices.
+- 'df': A 'DataFrame' of edges loaded from 'road_file'.
+- 'sparse_index': A 'SparseMatrixCSC' representing the adjacency matrix of the graph.
+- 'road_index': A 'KDTree' for spatial indexing of road nodes.
+- 'node_indices': A vector of node indices.
 """
 function create_road_graph(road_file::String,node_file::String;dir::String=".")
     df = OSMXGraph.read_file(string(dir,"/",road_file))
@@ -323,20 +354,20 @@ Parses an OSM file to create a road graph and spatial index structures, saving t
 
 # Arguments
 
-- `osm_file`: The filename of the OpenStreetMap (`.osm`) file to parse.
-- `road_types`: A vector of strings specifying the highway types to include.
-- `graph_file_name`: The filename to save the edge `DataFrame` as (including `.csv`).
-- `node_file_name`: The filename to save the node data as (including `.json`).
-- `dir_in`: The directory where the OSM file is located. Defaults to the current directory `"."`.
-- `dir_out`: The directory where the output files will be saved. Defaults to the current directory `"."`.
+- 'osm_file': The filename of the OpenStreetMap ('.osm') file to parse.
+- 'road_types': A vector of strings specifying the highway types to include.
+- 'graph_file_name': The filename to save the edge 'DataFrame' as (including '.csv').
+- 'node_file_name': The filename to save the node data as (including '.json').
+- 'dir_in': The directory where the OSM file is located. Defaults to the current directory '"."'.
+- 'dir_out': The directory where the output files will be saved. Defaults to the current directory '"."'.
 
 # Returns
 
 A tuple containing:
-- `df`: A `DataFrame` of edges.
-- `sparse_index`: A `SparseMatrixCSC` representing the adjacency matrix of the graph.
-- `road_index`: A `KDTree` for spatial indexing of road nodes.
-- `vals`: A vector of node indices.
+- 'df': A 'DataFrame' of edges.
+- 'sparse_index': A 'SparseMatrixCSC' representing the adjacency matrix of the graph.
+- 'road_index': A 'KDTree' for spatial indexing of road nodes.
+- 'vals': A vector of node indices.
 
 If the specified output files already exist, the function loads data from these files instead of parsing the OSM file.
 """
@@ -370,8 +401,8 @@ Saves node data to a JSON file.
 
 # Arguments
 
-- `nodes`: A dictionary mapping node IDs to tuples containing `LLA` coordinates and an index.
-- `file_name`: The filename to save the node data to.
+- 'nodes': A dictionary mapping node IDs to tuples containing 'LLA' coordinates and an index.
+- 'file_name': The filename to save the node data to.
 
 The node data is saved in JSON format, where each key is a node ID (as a string), and each value is a tuple containing the latitude and longitude (as a tuple), and the index.
 """
@@ -391,11 +422,11 @@ Loads node data from a JSON file.
 
 # Arguments
 
-- `file_name`: The filename of the JSON file containing node data.
+- 'file_name': The filename of the JSON file containing node data.
 
 # Returns
 
-A dictionary mapping node IDs (as integers) to tuples containing `LLA` coordinates and an index.
+A dictionary mapping node IDs (as integers) to tuples containing 'LLA' coordinates and an index.
 """
 function load_nodes(file_name::String)
     node_json = JSON.parsefile(file_name)
@@ -409,19 +440,19 @@ end
 """
     add_nearest_road_point(POI_df::DataFrame, POI_xs::Vector{Float64}, POI_ys::Vector{Float64}, road_index::KDTree, road_nodes::Vector{Int}) -> DataFrame
 
-Finds the nearest road node for each point of interest (POI) and adds it to the `DataFrame`.
+Finds the nearest road node for each point of interest (POI) and adds it to the 'DataFrame'.
 
 # Arguments
 
-- `POI_df`: A `DataFrame` containing the points of interest.
-- `POI_xs`: A vector of x-coordinates (longitude) for the POIs.
-- `POI_ys`: A vector of y-coordinates (latitude) for the POIs.
-- `road_index`: A `KDTree` representing the spatial index of road nodes.
-- `road_nodes`: A vector of node indices corresponding to the points in `road_index`.
+- 'POI_df': A 'DataFrame' containing the points of interest.
+- 'POI_xs': A vector of x-coordinates (longitude) for the POIs.
+- 'POI_ys': A vector of y-coordinates (latitude) for the POIs.
+- 'road_index': A 'KDTree' representing the spatial index of road nodes.
+- 'road_nodes': A vector of node indices corresponding to the points in 'road_index'.
 
 # Returns
 
-The updated `POI_df` `DataFrame` with a new column `nearest_road_node`, containing the index of the nearest road node for each POI.
+The updated 'POI_df' 'DataFrame' with a new column 'nearest_road_node', containing the index of the nearest road node for each POI.
 """
 function add_nearest_road_point(POI_df::DataFrame,POI_xs::Vector{Float64},POI_ys::Vector{Float64},
                                 road_index::KDTree,road_nodes::Vector{Int})
