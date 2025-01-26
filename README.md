@@ -1,12 +1,14 @@
+[![DOI](https://zenodo.org/badge/901562113.svg)](https://doi.org/10.5281/zenodo.14618331)
+
 ## Tools for transforming OSM data into a graph structure
 
-The 'OSMXGraph' module was created under contract no. 7474/2024. The tools enable the transformation of OSM data into a set of data frames containing:
+#### TODO: provide one paragraph sentence with background information: what are OMS files why there are needed how they can be utized etc. This should be written somehow in the scope of grant project but without mentioning it directly
+
+The 'OSMXGraph' module was enables the transformation of OSM data into a set of data frames containing:
 1. A graph of the road network (detailed in the "Road Network Graph" section),
 2. Metadata for the graph's edges (detailed in the "Dataframe for Graph Metadata" section),
 3. Metadata for the graph's nodes (detailed in the "Dataframe for Graph Metadata" section),
 4. Metadata for POIs, including the point's location, class and type of POI, and the ID of the nearest road nodes (detailed in the "Dataframe for POI" section).
-
-[![DOI](https://zenodo.org/badge/901562113.svg)](https://doi.org/10.5281/zenodo.14618331)
 
 ## Road Network Graph
 
@@ -18,7 +20,7 @@ The dataframe contains metadata for both road nodes and roadways. Each row of th
 
 - **id**: Road's ID.
 - **from_id**: ID of the node that is the starting point of the road. The ID corresponds to the node ID in the road network graph and ID in the POI dataframe.
-- **to_id**: ID of the node that is the endpoint of the road. The ID corresponds to the node ID in the road network graph and ID in the POI dataframe.  
+- **to_id**: ID of the node that is the endpoint of the road. The ID corresponds to the node ID in the road network graph and ID in the POI dataframe.
 - **from**: ID of the node that is the starting point of the road. The ID corresponds to the node ID in the OSM file.
 - **to**: ID of the node that is the endpoint of the road. The ID corresponds to the node ID in the OSM file.
 - **from_LLA**: Location of the starting point of the road in geodetic metric.
@@ -54,12 +56,17 @@ dir_in=dir_in
 
 
 ### 1. Filtering ways
+
+##### TODO: dac akapit po co nam grafy
+
 The First step in creating graph is filtering the vector of 'Way' objects. The 'Way' 
 structure in OSM files is a vector that represents more types of objects than just roads.
 The 'filter ways' function filters the vector of 'Way' objects to retain only roads with 
 hierarchy types specified by user.  
 
 
+
+##### TODO skroc listing wynikow bo taki dlugi jest nieczytelny i niepotrzebny tutaj
 ```julia
 parsed = OpenStreetMapX.parseOSM(string(dir_in,"/",osm_file))
 ways = parsed.ways
@@ -77,6 +84,9 @@ filtered_ways = OSMXGraph.filter_ways(ways,road_types)
 
 
 ### 2. Finding nodes and edges
+
+##### TODO: dac akapit wprowadzajacy po co to robic
+
 The step is performed based on filtered roadway vector. The function 'find intersaction' 
 iterates through all roads and their nodes. A road point is considered a graph node 
 if it is a starting or ending point of a road or if the it is an intersecion of 
