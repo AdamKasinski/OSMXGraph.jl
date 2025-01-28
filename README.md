@@ -2,7 +2,7 @@
 
 ## Tools for transforming OSM data into a graph structure
 
-#### TODO: provide one paragraph sentence with background information: what are OMS files why there are needed how they can be utized etc. This should be written somehow in the scope of grant project but without mentioning it directly
+OSM files are open-source, standardized datasets that capture detailed geospatial information about urban environments, enabling the creation of realistic, data-driven city models (digital twins) that support a broad range of applications, including multi-agent simulations for urban planning and infrastructure development.
 
 The 'OSMXGraph' module was enables the transformation of OSM data into a set of data frames containing:
 1. A graph of the road network (detailed in the "Road Network Graph" section),
@@ -12,6 +12,7 @@ The 'OSMXGraph' module was enables the transformation of OSM data into a set of 
 
 ## Road Network Graph
 
+The primary objective of this tool is to convert OSM files into a graph-based representation of the road network, serving as a robust foundation for in-depth transport infrastructure analyses. By extracting relevant pathways and intersections, the tool creates a precise model of connections and travel routes, enabling users to conduct more sophisticated studies such as traffic flow modeling, route optimization, and multi-agent simulations. This graph-centric approach not only streamlines complex analyses but also facilitates data-driven decision-making and further integration with other computational tools.
 The road network graph is stored as a sparse adjacency matrix, where each pair of node IDs is mapped to a corresponding road ID. The node and way IDs can then be mapped to a dataframe containing metadata about the nodes and roads.
 
 ## Dataframe for Graph Metadata
@@ -57,16 +58,12 @@ dir_in=dir_in
 
 ### 1. Filtering ways
 
-##### TODO: dac akapit po co nam grafy
-
 The First step in creating graph is filtering the vector of 'Way' objects. The 'Way' 
 structure in OSM files is a vector that represents more types of objects than just roads.
 The 'filter ways' function filters the vector of 'Way' objects to retain only roads with 
 hierarchy types specified by user.  
 
 
-
-##### TODO skroc listing wynikow bo taki dlugi jest nieczytelny i niepotrzebny tutaj
 ```julia
 parsed = OpenStreetMapX.parseOSM(string(dir_in,"/",osm_file))
 ways = parsed.ways
@@ -76,16 +73,11 @@ filtered_ways = OSMXGraph.filter_ways(ways,road_types)
 
     125255-element Vector{Way}:
      Way(4307329, [2448759046, 7093785352, 2452307268, 1439574696], Dict("name:etymology:wikidata" => "Q5441838", "surface" => "asphalt", "name" => "Rondo Feliksa Stamma", "sidewalk:right" => "separate", "wikidata" => "Q113528575", "lit" => "yes", "highway" => "tertiary", "cycleway:both" => "no", "junction" => "roundabout", "sidewalk:left" => "no"…))
-     Way(4307330, [26063923, 26063924, 9900672046, 7093724913, 26063925, 4770319996, 7554494461, 9442368604, 11303130233, 11303232206, 9220363525, 9982770288], Dict("lit" => "yes", "name" => "Bokserska", "source:maxspeed" => "PL:urban", "highway" => "tertiary", "lanes" => "2", "maxspeed" => "50", "surface" => "asphalt", "wikidata" => "Q106807412"))
-     Way(4308966, [3387797238, 9252948452], Dict("cycleway:left" => "no", "cycleway:right" => "separate", "lit" => "yes", "name" => "Postępu", "highway" => "tertiary", "lanes" => "2", "sidewalk" => "separate", "maxspeed" => "50", "surface" => "asphalt", "wikidata" => "Q63188829"…))
-     Way(4308978, [3576562134, 8961134644, 9936189679, 4972766762, 26083936, 3705172931, 3576562138, 9035856380, 427569388, 9035856661, 427569361, 427569362, 260821813, 427569360, 9035856642, 260821818, 9035856643, 9035856663, 4972766763, 260821819], Dict("lit" => "yes", "highway" => "residential", "surface" => "asphalt", "noname" => "yes"))
-     Way(4308979, [26083933, 4439989380, 3024770845, 8677742938, 9281835433, 9934684736, 10692999753, 1147905901, 1147905852, 8975524567, 26083935], Dict("highway" => "residential", "sidewalk" => "separate", "surface" => "asphalt", "noname" => "yes"))
-     Way(4308980, [26083939, 427569365, 3024770846, 9281835907, 26083947], Dict("lit" => "yes", "name" => "Jana Zaorskiego", "sidewalk:left" => "no", "oneway" => "yes", "sidewalk:right" => "separate", "highway" => "residential", "lanes" => "1", "surface" => "asphalt"))
-
 
 ### 2. Finding nodes and edges
 
-##### TODO: dac akapit wprowadzajacy po co to robic
+The road graph is represented by nodes and edges, with each node corresponding to either the start/end of a roadway or an intersection. 
+This design ensures the resulting graph reflects the real transport network while remaining as lightweight as possible for efficient analysis and simulation purposes.
 
 The step is performed based on filtered roadway vector. The function 'find intersaction' 
 iterates through all roads and their nodes. A road point is considered a graph node 
