@@ -10,6 +10,7 @@ using Distances
 using NearestNeighbors
 using CSV
 using JSON
+using Statistics
 
 struct Edge
     id::Int
@@ -23,7 +24,10 @@ struct Edge
     type::String
 end
 
-export filter_ways, find_intersections, ways_to_edges, edges_to_df, create_sparse_index, create_road_index, find_nearest_point, save_file, read_file, create_road_graph, save_nodes, load_nodes, add_nearest_road_point
+export filter_ways, find_intersections, ways_to_edges, edges_to_df, create_sparse_index, 
+        create_road_index, find_nearest_point, save_file, read_file, create_road_graph, 
+        save_nodes, load_nodes, add_nearest_road_point, add_weigths_to_nodes,calc_weight,
+        calc_weight
 
 """
     filter_ways(ways::Vector{Way}, road_types::Vector{String}) -> Vector{Way}
@@ -178,6 +182,78 @@ function ways_to_edges(ways::Dict{Int64, Vector{Int64}},
         end
     end
     return edges
+end
+
+"""
+    distance_points(point1::ENU, point2::ENU) -> Float64
+
+Compute the 2D Euclidean distance between two points given in ENU (East, North, Up) coordinates.
+The vertical (Up) component is ignored, so only `east` and `north` differences are considered.
+
+# Arguments
+- 'point1::ENU': First ENU coordinate.
+- 'point2::ENU': Second ENU coordinate.
+
+# Returns
+- 'Float64': The Euclidean distance in the horizontal plane.
+"""
+function distance_points(point1::ENU,point2::ENU)
+    east1 = point1.east
+    east2 = point2.east
+    north1 = point1.north
+    north2 = point2.north
+    return sqrt( (east2 - east1)^2 + (north2 - north1)^2 )
+end
+
+"""
+    calc_weight(point::ENU, neighbors::Vector{ENU}) -> Vector{Float64}
+
+Compute the distances from `point` to each neighbor in `neighbors` using `distance_points`.
+
+# Arguments
+- 'point::ENU': The reference ENU coordinate.
+- 'neighbors::Vector{ENU}': A list of ENU coordinates to which distances are computed.
+
+# Returns
+- 'Vector{Float64}': A vector of distances from `point` to each neighbor.
+"""
+function calc_weight(point::ENU,neighbors::Vector{ENU})
+    return [distance_points(point,neighbor) for neighbor in neighbors]
+    
+end
+
+"""
+    add_weigths_to_nodes(highways::Dict{Int64, Vector{Int64}},
+                         center::LLA,
+                         lla_nodes::Dict{Int64, Tuple{LLA, Int64}}) -> Dict{Int64, Float64}
+
+this function calculates the distances between each node and its immediate neighbors (the previous and next node, if they exist) in each highway, accumulates these distances, and returns a dictionary mapping each node ID to the mean of its neighbor distances.
+
+# Arguments
+- 'highways::Dict{Int64, Vector{Int64}}': Maps highway IDs to ordered lists of node IDs.
+- 'center::LLA': The reference LLA coordinate for ENU conversion.
+- 'lla_nodes::Dict{Int64, Tuple{LLA, Int64}}': Maps node IDs to a tuple containing the node’s LLA coordinate and an additional Int value.
+
+# Returns
+- 'Dict{Int64, Float64}': A dictionary mapping each node ID to the mean distance from that node to its immediate neighbors.
+"""
+function add_weigths_to_nodes(highways::Dict{Int64, Vector{Int64}},center::LLA,
+                                            lla_nodes::Dict{Int64, Tuple{LLA, Int64}})
+    nds = Dict()
+    nodes_enu = Dict(key => ENU(lla_value,center) for (key, (lla_value,ind)) in lla_nodes)
+    for key in keys(highways)
+        nodes = highways[key]
+        for (i, nd) in enumerate(nodes)
+            neighbors = [nodes_enu[nodes[j]] for j in (i-1, i+1) if 1 <= j <= length(nodes)]
+            if haskey(nds,nd)
+                av = calc_weight(nodes_enu[nd],neighbors)
+                nds[nd] = append!(nds[nd], av)
+            else
+                nds[nd] = calc_weight(nodes_enu[nd],neighbors)
+            end
+        end
+    end
+    return Dict(key => mean(values) for (key, values) in nds)
 end
 
 
