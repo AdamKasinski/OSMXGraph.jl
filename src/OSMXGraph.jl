@@ -10,6 +10,7 @@ using Distances
 using NearestNeighbors
 using CSV
 using JSON
+using Statistics
 
 struct Edge
     id::Int
@@ -23,7 +24,10 @@ struct Edge
     type::String
 end
 
-export filter_ways, find_intersections, ways_to_edges, edges_to_df, create_sparse_index, create_road_index, find_nearest_point, save_file, read_file, create_road_graph, save_nodes, load_nodes, add_nearest_road_point
+export filter_ways, find_intersections, ways_to_edges, edges_to_df, create_sparse_index, 
+        create_road_index, find_nearest_point, save_file, read_file, create_road_graph, 
+        save_nodes, load_nodes, add_nearest_road_point, add_weigths_to_nodes,calc_weight,
+        calc_weight
 
 """
     filter_ways(ways::Vector{Way}, road_types::Vector{String}) -> Vector{Way}
@@ -178,6 +182,40 @@ function ways_to_edges(ways::Dict{Int64, Vector{Int64}},
         end
     end
     return edges
+end
+
+
+function distance_points(point1::ENU,point2::ENU)
+    east1 = point1.east
+    east2 = point2.east
+    north1 = point1.north
+    north2 = point2.north
+    return sqrt( (east2 - east1)^2 + (north2 - north1)^2 )
+end
+
+function calc_weight(point::ENU,neighbors::Vector{ENU})
+    return [distance_points(point,neighbor) for neighbor in neighbors]
+    
+end
+
+
+function add_weigths_to_nodes(highways::Dict{Int64, Vector{Int64}},center::LLA,
+                                            lla_nodes::Dict{Int64, Tuple{LLA, Int64}})
+    nds = Dict()
+    nodes_enu = Dict(key => ENU(lla_value,center) for (key, (lla_value,ind)) in lla_nodes)
+    for key in keys(highways)
+        nodes = highways[key]
+        for (i, nd) in enumerate(nodes)
+            neighbors = [nodes_enu[nodes[j]] for j in (i-1, i+1) if 1 <= j <= length(nodes)]
+            if haskey(nds,nd)
+                av = calc_weight(nodes_enu[nd],neighbors)
+                nds[nd] = append!(nds[nd], av)
+            else
+                nds[nd] = calc_weight(nodes_enu[nd],neighbors)
+            end
+        end
+    end
+    return Dict(key => mean(values) for (key, values) in nds)
 end
 
 
