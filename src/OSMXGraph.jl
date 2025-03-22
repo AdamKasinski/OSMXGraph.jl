@@ -27,7 +27,7 @@ end
 export filter_ways, find_intersections, ways_to_edges, edges_to_df, create_sparse_index, 
         create_road_index, find_nearest_point, save_file, read_file, create_road_graph, 
         save_nodes, load_nodes, add_nearest_road_point, add_weigths_to_nodes,calc_weight,
-        calc_weight
+        calc_weight, find_only_intersections
 
 """
     filter_ways(ways::Vector{Way}, road_types::Vector{String}) -> Vector{Way}
