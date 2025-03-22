@@ -100,6 +100,57 @@ A tuple containing:
 - 'roads_tags': A dictionary of road tags for each highway.
 - 'nds': A dictionary mapping node IDs to location data and index.
 """
+function find_only_intersections(highways::Vector{Way},
+                                parsed_map::OpenStreetMapX.OSMData)
+    seen = Set{Int}()
+    intersections = Set{Int}()
+    roads = Dict{Int,Vector{Int}}()
+    roads_tags = Dict{Int,Dict{String,String}}()
+    nds = Dict{Int,Tuple{LLA,Int}}()
+    node_id = 1
+    for highway in highways
+        for i = 1:length(highway.nodes)
+            if (highway.nodes[i] in seen)
+                push!(intersections, highway.nodes[i])
+                if !haskey(nds,highway.nodes[i])
+                    nds[highway.nodes[i]] = (parsed_map.nodes[highway.nodes[i]],node_id)
+                    node_id+=1
+                end
+            else
+                push!(seen, highway.nodes[i])
+            end
+        end
+        roads[highway.id] = Vector{Int}()
+        roads_tags[highway.id] = highway.tags
+    end
+    for highway in highways
+        for i = 1:length(highway.nodes)
+            if highway.nodes[i] in intersections
+                push!(roads[highway.id],(highway.nodes[i]))
+            end
+        end
+    end
+    return roads, intersections, roads_tags, nds
+end
+
+
+
+"""
+    find_intersections(highways::Vector{Way}, parsed_map::OpenStreetMapX.OSMData) -> (Dict{Int, Vector{Int}}, Set{Int}, Dict{Int, Dict{String, String}}, Dict{Int, Tuple{LLA, Int}})
+
+Filters road vectors to intersections.
+
+# Arguments
+- 'highways': A vector of 'Way' objects representing highways.
+- 'parsed_map': An 'OSMData' object containing parsed map data.
+
+# Returns
+A tuple containing:
+- 'roads': A dictionary of roads mapped to their nodes.
+- 'intersections': A set of node IDs that represent intersections.
+- 'roads_tags': A dictionary of road tags for each highway.
+- 'nds': A dictionary mapping node IDs to location data and index.
+"""
 function find_intersections(highways::Vector{Way},parsed_map::OpenStreetMapX.OSMData)
     seen = Set{Int}()
     intersections = Set{Int}()
